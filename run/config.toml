@@ -1,6 +1,0 @@
-[server]
-addr = "127.0.0.1"
-port = 8080
-
-[database]
-url = "mysql://root:KKW557kkw!@localhost:3306/destru"

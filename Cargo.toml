@@ -2,10 +2,23 @@
 name = "destru"
 version = "0.1.0"
 edition = "2021"
+authors = ["557 <557@destru.org>"]
 
 [dependencies]
 actix-web = "4.9.0"
+actix-rt = "2.10.0"
+actix-cors = "0.7.0"
 serde = { version = "1.0.217", features = ["derive"] }
-config = "0.15.8"
 chrono = { version = "0.4.39", features = ["serde"]}
-sqlx = { version = "0.8.3", features = ["mysql", "runtime-async-std", "macros", "chrono", "time"] }
+sqlx = { version = "0.8.3", features = [
+    "postgres",
+    "chrono",
+    "macros",
+    "runtime-tokio-rustls",
+] }
+dotenvy = "0.15.7"
+log = "0.4.25"
+env_logger = "0.11.6"
+sqids = "0.4.2"
+lazy_static = "1.5.0"
+thiserror = "2.0.11"
