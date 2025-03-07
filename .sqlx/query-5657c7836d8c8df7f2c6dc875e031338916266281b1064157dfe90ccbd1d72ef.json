@@ -1,0 +1,41 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            s.id,\n            s.name,\n            si.url as image,\n            u.name as creator\n        FROM structures s\n        LEFT JOIN LATERAL (\n            SELECT url\n            FROM structure_images\n            WHERE structure = s.id\n            ORDER BY id\n            LIMIT 1\n        ) si ON true\n        LEFT JOIN LATERAL (\n            SELECT creator\n            FROM structure_creators\n            WHERE structure = s.id\n            ORDER BY id\n            LIMIT 1\n        ) sc ON true\n        LEFT JOIN users u ON u.id = sc.creator\n        LIMIT $1\n        OFFSET $2\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "image",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "creator",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "5657c7836d8c8df7f2c6dc875e031338916266281b1064157dfe90ccbd1d72ef"
+}
