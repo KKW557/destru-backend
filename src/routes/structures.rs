@@ -1,5 +1,5 @@
 use crate::models::files::File;
-use crate::models::pagination::PaginationParams;
+use crate::models::pagination::{Pagination, PaginationParams};
 use crate::models::responses::{NotFoundResponse, StructureResponse, StructuresResponse};
 use crate::models::structures::{DbStructure, Structure, StructurePreview};
 use crate::models::users::User;
@@ -71,10 +71,18 @@ pub async fn get_structure(id: Path<String>, postgre: Data<PgPool>) -> impl Resp
 
 #[get("/structures")]
 pub async fn get_structures(params: Query<PaginationParams>, postgre: Data<PgPool>) -> impl Responder {
-    let page = params.page.unwrap_or(1);
-    let size = params.size.unwrap_or(24);
+    let page = params.page.unwrap_or(1).max(1);
+    let size = params.size.unwrap_or(16).max(1).min(64);
 
     let mut tx = postgre.begin().await.unwrap();
+
+    let total = sqlx::query_scalar!(
+        "SELECT COUNT(*) FROM structures"
+    )
+        .fetch_one(&mut *tx)
+        .await
+        .unwrap()
+        .unwrap();
 
     let structures = sqlx::query_as!(
         StructurePreview,
@@ -112,5 +120,5 @@ pub async fn get_structures(params: Query<PaginationParams>, postgre: Data<PgPoo
 
     tx.commit().await.expect("failed to commit transaction");
 
-    HttpResponse::Ok().json(StructuresResponse::new(structures))
+    HttpResponse::Ok().json(StructuresResponse::new(structures, Pagination { page, size, total: (total + size - 1) / size }))
 }

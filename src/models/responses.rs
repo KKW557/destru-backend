@@ -1,4 +1,5 @@
 use serde::Serialize;
+use crate::models::pagination::Pagination;
 use crate::models::structures::{Structure, StructurePreview};
 
 // #[derive(Serialize)]
@@ -48,13 +49,15 @@ impl StructureResponse {
 pub struct StructuresResponse {
     pub success: bool,
     pub structures: Vec<StructurePreview>,
+    pub pagination: Pagination,
 }
 
 impl StructuresResponse {
-    pub fn new(structures: Vec<StructurePreview>) -> Self {
+    pub fn new(structures: Vec<StructurePreview>, pagination: Pagination) -> Self {
         StructuresResponse {
             success: true,
             structures,
+            pagination,
         }
     }
 }
