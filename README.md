@@ -1,1 +1,1 @@
-[destru.org](destru.org)
+[destru.org](https://destru.org)
