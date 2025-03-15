@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT u.id, u.name, u.avatar FROM structure_creators c JOIN users u ON c.id = u.id WHERE c.structure = $1",
+  "query": "SELECT id, name, avatar FROM users WHERE id = $1",
   "describe": {
     "columns": [
       {
@@ -30,5 +30,5 @@
       true
     ]
   },
-  "hash": "cec74659a0567d1454df5fe1aa9080f468b2182a4737a69e96daa62df6a2db8b"
+  "hash": "82ab4f2ca4dfc3d23a00357c352d7a34e856f354586e28f987693e077011b744"
 }

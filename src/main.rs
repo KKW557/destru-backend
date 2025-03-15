@@ -18,9 +18,27 @@ async fn main() -> std::io::Result<()> {
         .expect("Failed to connect to database");
 
     HttpServer::new(move || {
-        let cors = Cors::default()
-            .allow_any_origin()
-            .max_age(3600);
+        let cors = {
+            #[cfg(debug_assertions)]
+            {
+                Cors::default()
+                    .allow_any_origin()
+                    .allow_any_method()
+                    .allow_any_header()
+                    .supports_credentials()
+                    .max_age(3600)
+            }
+            #[cfg(not(debug_assertions))]
+            {
+                Cors::default()
+                    .allowed_origin("https://destru.org")
+                    .allowed_origin("https://api.destru.org")
+                    .allow_any_method()
+                    .allow_any_header()
+                    .supports_credentials()
+                    .max_age(3600)
+            }
+        };
 
         App::new()
             .wrap(cors)

@@ -1,63 +1,38 @@
 use serde::Serialize;
+use crate::models::ids::UserID;
 use crate::models::pagination::Pagination;
 use crate::models::structures::{Structure, StructurePreview};
-
-// #[derive(Serialize)]
-// pub struct ErrorResponse {
-//     pub success: bool,
-//     pub cause: String,
-// }
-//
-// impl ErrorResponse {
-//     pub fn new(cause: String) -> Self {
-//         ErrorResponse {
-//             success: false,
-//             cause,
-//         }
-//     }
-// }
-
-#[derive(Serialize)]
-pub struct NotFoundResponse {
-    pub success: bool,
-}
-
-impl NotFoundResponse {
-    pub fn new() -> Self {
-        NotFoundResponse {
-            success: false,
-        }
-    }
-}
+use crate::models::users::User;
 
 #[derive(Serialize)]
 pub struct StructureResponse {
-    pub success: bool,
     pub structure: Structure,
-}
-
-impl StructureResponse {
-    pub fn new(structure: Structure) -> Self {
-        StructureResponse {
-            success: true,
-            structure
-        }
-    }
 }
 
 #[derive(Serialize)]
 pub struct StructuresResponse {
-    pub success: bool,
     pub structures: Vec<StructurePreview>,
     pub pagination: Pagination,
 }
 
-impl StructuresResponse {
-    pub fn new(structures: Vec<StructurePreview>, pagination: Pagination) -> Self {
-        StructuresResponse {
-            success: true,
-            structures,
-            pagination,
-        }
-    }
+#[derive(Serialize)]
+pub enum UserError {
+    InvalidName,
+    InvalidPassword,
+    NameExists,
+}
+
+#[derive(Serialize)]
+pub struct RegisterErrorResponse {
+    pub reason: UserError,
+}
+
+#[derive(Serialize)]
+pub struct LoginResponse {
+    pub id: UserID,
+}
+
+#[derive(Serialize)]
+pub struct UserResponse {
+    pub user: User,
 }

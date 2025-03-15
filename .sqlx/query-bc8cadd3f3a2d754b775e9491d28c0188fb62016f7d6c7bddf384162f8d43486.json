@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM user_tokens WHERE \"user\" = $1 AND id NOT IN (SELECT id FROM user_tokens WHERE \"user\" = $1 ORDER BY id DESC LIMIT 5)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "bc8cadd3f3a2d754b775e9491d28c0188fb62016f7d6c7bddf384162f8d43486"
+}

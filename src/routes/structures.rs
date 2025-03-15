@@ -1,23 +1,23 @@
 use crate::models::files::File;
 use crate::models::pagination::{Pagination, PaginationParams};
-use crate::models::responses::{NotFoundResponse, StructureResponse, StructuresResponse};
+use crate::models::responses::{StructureResponse, StructuresResponse};
 use crate::models::structures::{DbStructure, Structure, StructurePreview};
 use crate::models::users::User;
 use actix_web::web::{Data, Path, Query};
 use actix_web::{get, HttpResponse, Responder};
 use sqlx::PgPool;
-use destru::decode;
+use destru::decode_sqids;
 use crate::models::ids::STRUCTURE_FLAG;
 
 #[get("/structure/{id}")]
 pub async fn get_structure(id: Path<String>, postgre: Data<PgPool>) -> impl Responder {
-    match decode(STRUCTURE_FLAG, id.as_str()) {
+    match decode_sqids(STRUCTURE_FLAG, id.as_str()) {
         Ok(id) => {
             let mut tx = postgre.begin().await.unwrap();
 
             let db_structure = sqlx::query_as!(
                 DbStructure,
-                r#"SELECT id, name, summary, description, created FROM structures WHERE id = $1"#,
+                r"SELECT id, name, summary, description, created FROM structures WHERE id = $1",
                 id,
             )
             .fetch_one(&mut *tx)
@@ -26,7 +26,7 @@ pub async fn get_structure(id: Path<String>, postgre: Data<PgPool>) -> impl Resp
 
             let files = sqlx::query_as!(
                 File,
-                r#"SELECT url, created FROM structure_files WHERE structure = $1"#,
+                r"SELECT url, created FROM structure_files WHERE structure = $1",
                 id,
             )
             .fetch_all(&mut *tx)
@@ -35,7 +35,7 @@ pub async fn get_structure(id: Path<String>, postgre: Data<PgPool>) -> impl Resp
 
             let images = sqlx::query_as!(
                 File,
-                r#"SELECT url, created FROM structure_images WHERE structure = $1"#,
+                r"SELECT url, created FROM structure_images WHERE structure = $1",
                 id,
             )
             .fetch_all(&mut *tx)
@@ -44,7 +44,7 @@ pub async fn get_structure(id: Path<String>, postgre: Data<PgPool>) -> impl Resp
 
             let creators = sqlx::query_as!(
                 User,
-                r#"SELECT u.id, u.name, u.avatar FROM structure_creators c JOIN users u ON c.id = u.id WHERE c.structure = $1"#,
+                r"SELECT u.id, u.name, u.avatar FROM structure_creators c JOIN users u ON c.id = u.id WHERE c.structure = $1",
                 id,
             )
                 .fetch_all(&mut *tx)
@@ -53,19 +53,20 @@ pub async fn get_structure(id: Path<String>, postgre: Data<PgPool>) -> impl Resp
 
             tx.commit().await.expect("failed to commit transaction");
 
-            HttpResponse::Ok().json(StructureResponse::new(
-                    Structure {
-                        id: db_structure.id,
-                        name: db_structure.name,
-                        summary: db_structure.summary,
-                        description: db_structure.description,
-                        created: db_structure.created,
-                        files,
-                        images,
-                        creators,
-            }))
+            HttpResponse::Ok().json(StructureResponse {
+                structure: Structure {
+                    id: db_structure.id,
+                    name: db_structure.name,
+                    summary: db_structure.summary,
+                    description: db_structure.description,
+                    created: db_structure.created,
+                    files,
+                    images,
+                    creators,
+                }
+            })
         }
-        Err(_) => HttpResponse::NotFound().json(NotFoundResponse::new()),
+        Err(_) => HttpResponse::NotFound().finish(),
     }
 }
 
@@ -77,7 +78,7 @@ pub async fn get_structures(params: Query<PaginationParams>, postgre: Data<PgPoo
     let mut tx = postgre.begin().await.unwrap();
 
     let total = sqlx::query_scalar!(
-        "SELECT COUNT(*) FROM structures"
+        r"SELECT COUNT(*) FROM structures"
     )
         .fetch_one(&mut *tx)
         .await
@@ -86,7 +87,7 @@ pub async fn get_structures(params: Query<PaginationParams>, postgre: Data<PgPoo
 
     let structures = sqlx::query_as!(
         StructurePreview,
-        r#"
+        r"
         SELECT
             s.id,
             s.name,
@@ -110,7 +111,7 @@ pub async fn get_structures(params: Query<PaginationParams>, postgre: Data<PgPoo
         LEFT JOIN users u ON u.id = sc.creator
         LIMIT $1
         OFFSET $2
-        "#,
+        ",
         size,
         (page - 1) * size,
     )
@@ -120,5 +121,12 @@ pub async fn get_structures(params: Query<PaginationParams>, postgre: Data<PgPoo
 
     tx.commit().await.expect("failed to commit transaction");
 
-    HttpResponse::Ok().json(StructuresResponse::new(structures, Pagination { page, size, total: (total + size - 1) / size }))
+    HttpResponse::Ok().json(StructuresResponse {
+        structures,
+        pagination: Pagination {
+            page,
+            size,
+            total: (total + size - 1) / size,
+        },
+    })
 }

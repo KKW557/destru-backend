@@ -1,8 +1,8 @@
 use crate::models::files::File;
+use crate::models::ids::StructureID;
 use crate::models::users::User;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
-use crate::models::ids::StructureID;
 
 #[derive(Serialize)]
 pub struct Structure {

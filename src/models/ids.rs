@@ -1,7 +1,7 @@
 use serde::de::Visitor;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt::Formatter;
-use destru::{decode, encode};
+use destru::{decode_sqids, encode_sqids};
 
 pub const USER_FLAG: u8 = 0;
 pub const STRUCTURE_FLAG: u8 = 1;
@@ -22,7 +22,7 @@ macro_rules! define_id {
             where
                 S: Serializer,
             {
-                let s = encode($flag, self.0).map_err(serde::ser::Error::custom)?;
+                let s = encode_sqids($flag, self.0).map_err(serde::ser::Error::custom)?;
                 serializer.serialize_str(&s)
             }
         }
@@ -45,7 +45,7 @@ macro_rules! define_id {
                     where
                         E: de::Error,
                     {
-                        decode($flag, s).map($name).map_err(E::custom)
+                        decode_sqids($flag, s).map($name).map_err(E::custom)
                     }
                 }
 
