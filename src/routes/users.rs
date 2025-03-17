@@ -9,7 +9,7 @@ use sqlx::PgPool;
 use regex::Regex;
 use destru::{decode_sqids, generate_jwt, hash_password, verify_password};
 use crate::models::ids::{UserID, USER_FLAG};
-use crate::models::responses::{LoginResponse, RegisterErrorResponse, UserError, UserResponse};
+use crate::models::responses::{LoginResponse, RegisterErrorResponse, UserError, UserNameResponse, UserResponse};
 
 lazy_static! {
     static ref NAME_REGEX: Regex = Regex::new(r"^[0-9a-zA-Z_-]{3,100}$").unwrap();
@@ -185,16 +185,35 @@ pub async fn login(login: Json<UserLogin>, postgre: Data<PgPool>) -> impl Respon
     }
 }
 
-#[get("/user/{id}")]
-pub async fn get_user(id: Path<String>, postgre: Data<PgPool>) -> impl Responder {
+#[get("/user/{name}")]
+pub async fn get_user(name: Path<String>, postgre: Data<PgPool>) -> impl Responder {
+    let mut tx = postgre.begin().await.unwrap();
+
+    let user = sqlx::query_as!(
+        User,
+        r"SELECT id, name, avatar, slug, bio FROM users WHERE name = $1",
+        name.as_str()
+    )
+        .fetch_one(&mut *tx)
+        .await;
+
+    tx.commit().await.expect("failed to commit transaction");
+
+    match user {
+        Ok(user) => HttpResponse::Ok().json(UserResponse { user }),
+        Err(_) => HttpResponse::NotFound().finish(),
+    }
+}
+
+#[get("/user/{id}/name")]
+pub async fn get_user_name(id: Path<String>, postgre: Data<PgPool>) -> impl Responder {
     match decode_sqids(USER_FLAG, id.as_str()) {
         Ok(id) => {
             let mut tx = postgre.begin().await.unwrap();
 
-            let user = sqlx::query_as!(
-                User,
-                r"SELECT id, name, avatar FROM users WHERE id = $1",
-                id,
+            let name = sqlx::query_scalar!(
+                r"SELECT name FROM users WHERE id = $1",
+                id
             )
                 .fetch_one(&mut *tx)
                 .await
@@ -202,9 +221,7 @@ pub async fn get_user(id: Path<String>, postgre: Data<PgPool>) -> impl Responder
 
             tx.commit().await.expect("failed to commit transaction");
 
-            HttpResponse::Ok().json(UserResponse {
-                user,
-            })
+            HttpResponse::Ok().json(UserNameResponse { name })
         }
         Err(_) => HttpResponse::NotFound().finish(),
     }

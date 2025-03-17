@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT u.id, u.name, u.avatar FROM structure_creators c JOIN users u ON c.id = u.id WHERE c.structure = $1",
+  "query": "SELECT id, name, avatar, slug, bio FROM users WHERE name = $1",
   "describe": {
     "columns": [
       {
@@ -11,24 +11,36 @@
       {
         "ordinal": 1,
         "name": "name",
-        "type_info": "Varchar"
+        "type_info": "Text"
       },
       {
         "ordinal": 2,
         "name": "avatar",
         "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "slug",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "bio",
+        "type_info": "Text"
       }
     ],
     "parameters": {
       "Left": [
-        "Int8"
+        "Text"
       ]
     },
     "nullable": [
       false,
       false,
+      true,
+      true,
       true
     ]
   },
-  "hash": "cec74659a0567d1454df5fe1aa9080f468b2182a4737a69e96daa62df6a2db8b"
+  "hash": "4b0845365592d703daaca2b71c97eba9defb3863c65788663802e1f9bc742ee7"
 }

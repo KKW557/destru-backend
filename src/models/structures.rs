@@ -1,8 +1,8 @@
 use crate::models::files::File;
 use crate::models::ids::StructureID;
-use crate::models::users::User;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
+use crate::models::users::UserPreview;
 
 #[derive(Serialize)]
 pub struct Structure {
@@ -12,7 +12,7 @@ pub struct Structure {
     pub description: String,
     pub files: Vec<File>,
     pub images: Vec<File>,
-    pub creators: Vec<User>,
+    pub creators: Vec<UserPreview>,
     pub created: NaiveDateTime,
 }
 

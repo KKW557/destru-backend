@@ -36,3 +36,8 @@ pub struct LoginResponse {
 pub struct UserResponse {
     pub user: User,
 }
+
+#[derive(Serialize)]
+pub struct UserNameResponse {
+    pub name: String,
+}

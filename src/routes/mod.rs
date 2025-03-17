@@ -3,7 +3,7 @@ mod users;
 
 use actix_web::web;
 use crate::routes::structures::{get_structure, get_structures};
-use crate::routes::users::{get_user, login, register};
+use crate::routes::users::{get_user, get_user_name, login, register};
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -13,5 +13,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .service(register)
             .service(login)
             .service(get_user)
+            .service(get_user_name)
     );
 }

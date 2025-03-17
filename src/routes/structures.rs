@@ -2,7 +2,7 @@ use crate::models::files::File;
 use crate::models::pagination::{Pagination, PaginationParams};
 use crate::models::responses::{StructureResponse, StructuresResponse};
 use crate::models::structures::{DbStructure, Structure, StructurePreview};
-use crate::models::users::User;
+use crate::models::users::UserPreview;
 use actix_web::web::{Data, Path, Query};
 use actix_web::{get, HttpResponse, Responder};
 use sqlx::PgPool;
@@ -43,8 +43,8 @@ pub async fn get_structure(id: Path<String>, postgre: Data<PgPool>) -> impl Resp
             .unwrap();
 
             let creators = sqlx::query_as!(
-                User,
-                r"SELECT u.id, u.name, u.avatar FROM structure_creators c JOIN users u ON c.id = u.id WHERE c.structure = $1",
+                UserPreview,
+                r"SELECT u.name, u.avatar, u.slug FROM structure_creators c JOIN users u ON c.id = u.id WHERE c.structure = $1",
                 id,
             )
                 .fetch_all(&mut *tx)
@@ -92,7 +92,7 @@ pub async fn get_structures(params: Query<PaginationParams>, postgre: Data<PgPoo
             s.id,
             s.name,
             si.url as image,
-            u.name as creator
+            COALESCE(u.slug, u.name) as creator
         FROM structures s
         LEFT JOIN LATERAL (
             SELECT url

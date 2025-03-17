@@ -6,6 +6,15 @@ pub struct User {
     pub id: UserID,
     pub name: String,
     pub avatar: Option<String>,
+    pub slug: Option<String>,
+    pub bio: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct UserPreview {
+    pub name: String,
+    pub avatar: Option<String>,
+    pub slug: Option<String>,
 }
 
 #[derive(Deserialize)]
