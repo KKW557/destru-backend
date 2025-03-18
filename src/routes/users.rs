@@ -5,11 +5,11 @@ use actix_web::cookie::Cookie;
 use actix_web::cookie::time::OffsetDateTime;
 use chrono::{Duration, Utc};
 use lazy_static::lazy_static;
-use sqlx::PgPool;
+use sqlx::{PgPool};
 use regex::Regex;
 use destru::{decode_sqids, generate_jwt, hash_password, verify_password};
 use crate::models::ids::{UserID, USER_FLAG};
-use crate::models::responses::{LoginResponse, RegisterErrorResponse, UserError, UserNameResponse, UserResponse};
+use crate::models::responses::{LoginResponse, RegisterErrorResponse, UserError, UserResponse};
 
 lazy_static! {
     static ref NAME_REGEX: Regex = Regex::new(r"^[0-9a-zA-Z_-]{3,100}$").unwrap();
@@ -185,14 +185,45 @@ pub async fn login(login: Json<UserLogin>, postgre: Data<PgPool>) -> impl Respon
     }
 }
 
-#[get("/user/{name}")]
-pub async fn get_user(name: Path<String>, postgre: Data<PgPool>) -> impl Responder {
+#[get("/users")]
+pub async fn get_users() -> impl Responder {
+    HttpResponse::Unauthorized().finish()
+}
+
+async fn get_user_by_id_response(id: &str, postgre: Data<PgPool>) -> HttpResponse {
+    match decode_sqids(USER_FLAG, id) {
+        Ok(id) => {
+            let mut tx = postgre.begin().await.unwrap();
+
+            let user = sqlx::query_as!(
+        User,
+        r"SELECT id, name, avatar, slug, bio FROM users WHERE id = $1",
+        id
+    )
+                .fetch_one(&mut *tx)
+                .await;
+
+            tx.commit().await.expect("failed to commit transaction");
+
+            match user {
+                Ok(user) => HttpResponse::Ok().json(UserResponse { user }),
+                Err(e) => {
+                    println!("{:?}", e);
+                    HttpResponse::NotFound().finish()
+                },
+            }
+        }
+        Err(_) => HttpResponse::NotFound().finish(),
+    }
+}
+
+async fn get_user_by_name_response(name: &str, postgre: Data<PgPool>) -> HttpResponse {
     let mut tx = postgre.begin().await.unwrap();
 
     let user = sqlx::query_as!(
         User,
         r"SELECT id, name, avatar, slug, bio FROM users WHERE name = $1",
-        name.as_str()
+        name
     )
         .fetch_one(&mut *tx)
         .await;
@@ -205,24 +236,17 @@ pub async fn get_user(name: Path<String>, postgre: Data<PgPool>) -> impl Respond
     }
 }
 
-#[get("/user/{id}/name")]
-pub async fn get_user_name(id: Path<String>, postgre: Data<PgPool>) -> impl Responder {
-    match decode_sqids(USER_FLAG, id.as_str()) {
-        Ok(id) => {
-            let mut tx = postgre.begin().await.unwrap();
+#[get("/users/{id}")]
+pub async fn get_user(id: Path<String>, postgre: Data<PgPool>) -> impl Responder {
+    get_user_by_id_response(id.as_str(), postgre).await
+}
 
-            let name = sqlx::query_scalar!(
-                r"SELECT name FROM users WHERE id = $1",
-                id
-            )
-                .fetch_one(&mut *tx)
-                .await
-                .unwrap();
-
-            tx.commit().await.expect("failed to commit transaction");
-
-            HttpResponse::Ok().json(UserNameResponse { name })
-        }
-        Err(_) => HttpResponse::NotFound().finish(),
+#[get("/users/by/{key}/{value}")]
+pub async fn get_user_by(path: Path<(String, String)>, postgre: Data<PgPool>) -> impl Responder {
+    let (key, value) = path.into_inner();
+    match key.as_str() {
+        "id" => get_user_by_id_response(value.as_str(), postgre).await,
+        "name" => get_user_by_name_response(value.as_str(), postgre).await,
+        _ => HttpResponse::NotFound().finish(),
     }
 }

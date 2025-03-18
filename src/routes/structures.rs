@@ -9,7 +9,7 @@ use sqlx::PgPool;
 use destru::decode_sqids;
 use crate::models::ids::STRUCTURE_FLAG;
 
-#[get("/structure/{id}")]
+#[get("/structures/{id}")]
 pub async fn get_structure(id: Path<String>, postgre: Data<PgPool>) -> impl Responder {
     match decode_sqids(STRUCTURE_FLAG, id.as_str()) {
         Ok(id) => {
