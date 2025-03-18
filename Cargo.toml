@@ -1,6 +1,6 @@
 [package]
 name = "destru"
-version = "1.3.0"
+version = "1.3.1"
 edition = "2024"
 authors = ["557 <557@destru.org>"]
 
@@ -25,3 +25,4 @@ thiserror = "2.0.12"
 regex = "1.11.1"
 argon2 = "0.6.0-pre.1"
 jsonwebtoken = "9.3.1"
+time = "0.3.40"
