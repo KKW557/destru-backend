@@ -86,7 +86,7 @@ pub async fn login(login: Json<UserLogin>, postgre: Data<PgPool>) -> impl Respon
     let mut tx = postgre.begin().await.unwrap();
 
     let row = sqlx::query!(
-        r"SELECT id, password FROM users WHERE name = $1",
+        r"SELECT id, name, avatar, password FROM users WHERE name = $1",
         name
     )
         .fetch_optional(&mut *tx)
@@ -165,6 +165,8 @@ pub async fn login(login: Json<UserLogin>, postgre: Data<PgPool>) -> impl Respon
                     .cookie(cookie)
                     .json(LoginResponse {
                         id: UserID::from(id),
+                        name: record.name,
+                        avatar: record.avatar,
                     })
             } else {
                 tx.commit().await.expect("failed to commit transaction");

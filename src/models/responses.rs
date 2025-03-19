@@ -30,6 +30,8 @@ pub struct RegisterErrorResponse {
 #[derive(Serialize)]
 pub struct LoginResponse {
     pub id: UserID,
+    pub name: String,
+    pub avatar: Option<String>,
 }
 
 #[derive(Serialize)]
